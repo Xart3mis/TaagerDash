@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routers import auth, users, targets
+from app.api.routers import auth, funnel, insights, users, targets
 
 app = FastAPI(
     title="Ad Performance Dashboard",
@@ -21,6 +21,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(targets.router, prefix="/api")
+app.include_router(insights.router, prefix="/api")
+app.include_router(funnel.router, prefix="/api")
 
 
 @app.get("/health")
