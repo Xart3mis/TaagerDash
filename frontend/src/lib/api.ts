@@ -52,6 +52,15 @@ export interface BuyerSummary extends MetricsSummary {
   rank: number
 }
 
+export interface DailyMetrics {
+  date: string
+  spend: number
+  revenue?: number | null
+  purchases?: number | null
+  impressions: number
+  link_clicks: number
+}
+
 export interface AdInsightCreate {
   date: string
   platform: Platform
@@ -138,6 +147,19 @@ export interface UserRead {
   is_active: boolean
 }
 
+export interface TeamMemberRead {
+  id: number
+  email: string
+  full_name: string
+  role: string
+}
+
+export interface TeamRead {
+  id: number
+  name: string
+  members: TeamMemberRead[]
+}
+
 // ---------------------------------------------------------------------------
 // HTTP client
 // ---------------------------------------------------------------------------
@@ -189,6 +211,7 @@ export interface FilterParams {
   start_date: string
   end_date: string
   platform?: Platform | ''
+  [key: string]: string | number | boolean | null | undefined
 }
 
 export const api = {
@@ -199,10 +222,12 @@ export const api = {
       request<PlatformSummary[]>(`/insights/by-platform?${qs(p)}`),
     byCampaign: (p: FilterParams) =>
       request<CampaignSummary[]>(`/insights/by-campaign?${qs(p)}`),
+    byDay: (p: FilterParams) =>
+      request<DailyMetrics[]>(`/insights/by-day?${qs(p)}`),
     leaderboard: (p: FilterParams & { sort_by?: string }) =>
       request<BuyerSummary[]>(`/insights/leaderboard?${qs(p)}`),
     list: (p: { start_date?: string; end_date?: string; platform?: Platform }) =>
-      request<AdInsightRead[]>(`/insights?${qs(p)}`),
+      request<AdInsightRead[]>(`/insights/?${qs(p)}`),
     upsert: (data: AdInsightCreate) =>
       request<AdInsightRead>('/insights/', {
         method: 'POST',
@@ -214,7 +239,7 @@ export const api = {
 
   funnel: {
     list: (p: { start_date?: string; end_date?: string; store_or_lp?: string }) =>
-      request<FunnelEntryRead[]>(`/funnel?${qs(p)}`),
+      request<FunnelEntryRead[]>(`/funnel/?${qs(p)}`),
     upsert: (data: FunnelEntryCreate) =>
       request<FunnelEntryRead>('/funnel/', {
         method: 'POST',
@@ -250,5 +275,44 @@ export const api = {
 
   users: {
     me: () => request<UserRead>('/users/me'),
+    list: () => request<UserRead[]>('/users/'),
+    updateProfile: (data: { full_name: string }) =>
+      request<UserRead>('/users/me/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    changePassword: (data: { current_password: string; new_password: string }) =>
+      request<void>('/users/me/password', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    changeEmail: (data: { current_password: string; new_email: string }) =>
+      request<UserRead>('/users/me/email', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  teams: {
+    list: () => request<TeamRead[]>('/teams/'),
+    create: (data: { name: string }) =>
+      request<TeamRead>('/teams/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (id: number, data: { name: string }) =>
+      request<TeamRead>(`/teams/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: number) =>
+      request<void>(`/teams/${id}`, { method: 'DELETE' }),
+    addMember: (teamId: number, userId: number) =>
+      request<TeamRead>(`/teams/${teamId}/members`, {
+        method: 'POST',
+        body: JSON.stringify({ user_id: userId }),
+      }),
+    removeMember: (teamId: number, userId: number) =>
+      request<TeamRead>(`/teams/${teamId}/members/${userId}`, { method: 'DELETE' }),
   },
 }

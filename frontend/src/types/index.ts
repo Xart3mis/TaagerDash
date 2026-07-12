@@ -1,5 +1,34 @@
 // ── Auth ────────────────────────────────────────────────────────────────────
 
+export interface RegisterRequest {
+  invite_token: string
+  email: string
+  full_name: string
+  password: string
+  confirm_password: string
+}
+
+/** Returned only from POST /invites/ — includes the raw token for sharing. */
+export interface InviteTokenCreated {
+  id: number
+  token: string
+  created_by_id: number
+  expires_at: string
+  used_at: string | null
+  used_by_email: string | null
+  created_at: string
+}
+
+/** Returned from GET /invites/ — token field omitted for security. */
+export interface InviteToken {
+  id: number
+  created_by_id: number
+  expires_at: string
+  used_at: string | null
+  used_by_email: string | null
+  created_at: string
+}
+
 export interface TokenResponse {
   access_token: string
   refresh_token: string
