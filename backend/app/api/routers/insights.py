@@ -5,13 +5,19 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import AdminUser, CurrentUser, DB
+from app.api.deps import DB, AdminUser, CurrentUser
 from app.models.ad_insight import AdInsight
 from app.models.platform_connection import Platform
 from app.models.target import Target, TargetScope
 from app.models.user import User
 from app.schemas.ad_insight import AdInsightCreate, AdInsightRead
-from app.schemas.insights import BuyerSummary, CampaignSummary, DailyMetrics, MetricsSummary, PlatformSummary
+from app.schemas.insights import (
+    BuyerSummary,
+    CampaignSummary,
+    DailyMetrics,
+    MetricsSummary,
+    PlatformSummary,
+)
 from app.services.metrics import derive_all
 
 router = APIRouter(prefix="/insights", tags=["insights"])
@@ -247,7 +253,7 @@ async def get_leaderboard(
         select(Target).where(Target.scope == TargetScope.user, Target.user_id.in_(user_ids))
     )
     user_caps: dict[int, Optional[float]] = {
-        t.user_id: t.cpa_cap for t in user_targets_res.scalars().all()
+        t.user_id: t.cpa_cap for t in user_targets_res.scalars().all() if t.user_id is not None
     }
 
     summaries: list[BuyerSummary] = []

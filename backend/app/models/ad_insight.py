@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Optional
-from sqlalchemy import Date, Float, ForeignKey, Integer, String, Enum as SAEnum, UniqueConstraint
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import Date, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.platform_connection import Platform
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class FunnelType(str):
@@ -56,4 +63,4 @@ class AdInsight(Base):
     # results = purchases for Ecom, leads for Lead funnel
     results: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="ad_insights")
+    user: Mapped[User] = relationship(back_populates="ad_insights")

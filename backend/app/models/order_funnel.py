@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
 from sqlalchemy import Date, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class OrderFunnelEntry(Base):
@@ -41,4 +47,4 @@ class OrderFunnelEntry(Base):
     basket_value: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # total revenue / value
     items: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)          # total items in orders
 
-    user: Mapped["User"] = relationship(back_populates="funnel_entries")
+    user: Mapped[User] = relationship(back_populates="funnel_entries")

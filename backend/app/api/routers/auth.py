@@ -5,11 +5,15 @@ from sqlalchemy import select
 
 from app.api.deps import DB
 from app.core.security import (
-    verify_password, create_access_token, create_refresh_token, decode_token, hash_password
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
 )
 from app.models.invite_token import InviteToken
 from app.models.user import User
-from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
+from app.schemas.auth import LoginRequest, RefreshRequest, TokenResponse
 from app.schemas.invite import RegisterRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])

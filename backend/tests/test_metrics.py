@@ -13,13 +13,31 @@ Sample rows (Daily Entry, rows 2-4):
 Dashboard totals (rows 7, 11-13, 18-20) are also tested for the aggregated path.
 """
 
-import pytest
 from app.services.metrics import (
-    pacing, ctr, cpc, cpm, hook_rate, click_to_lpv,
-    lpv_to_atc, atc_to_ic, ic_to_purchase, lpv_to_lead,
-    cvr, cpa, roas, aov, cpa_cap_status, derive_all,
-    confirmation_rate, delivery_rate, fulfillment_rate, rto_rate,
-    cancellation_rate, avg_basket, items_per_order, funnel_status, derive_funnel_all,
+    aov,
+    atc_to_ic,
+    avg_basket,
+    cancellation_rate,
+    click_to_lpv,
+    confirmation_rate,
+    cpa,
+    cpa_cap_status,
+    cpc,
+    cpm,
+    ctr,
+    cvr,
+    delivery_rate,
+    derive_all,
+    derive_funnel_all,
+    fulfillment_rate,
+    funnel_status,
+    hook_rate,
+    ic_to_purchase,
+    lpv_to_atc,
+    lpv_to_lead,
+    pacing,
+    roas,
+    rto_rate,
 )
 
 EPSILON = 1e-9  # float comparison tolerance

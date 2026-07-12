@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routers import auth, funnel, insights, invites, targets, teams, users
 from app.core.config import settings
-from app.api.routers import auth, funnel, insights, users, targets, invites, teams
 
 app = FastAPI(
     title="TaagerDash",

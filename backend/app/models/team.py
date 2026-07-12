@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 # Association table — no model class needed
 user_teams = Table(
@@ -18,6 +25,6 @@ class Team(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-    members: Mapped[list["User"]] = relationship(
+    members: Mapped[list[User]] = relationship(
         "User", secondary=user_teams, back_populates="teams"
     )

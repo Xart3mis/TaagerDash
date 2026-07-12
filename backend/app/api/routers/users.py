@@ -1,13 +1,16 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser, AdminUser, DB
+from app.api.deps import DB, AdminUser, CurrentUser
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.user import (
-    UserCreate, UserUpdate, UserRead,
-    ProfileUpdateRequest, ChangePasswordRequest, ChangeEmailRequest,
+    ChangeEmailRequest,
+    ChangePasswordRequest,
+    ProfileUpdateRequest,
+    UserCreate,
+    UserRead,
+    UserUpdate,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
