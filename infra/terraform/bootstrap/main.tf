@@ -16,6 +16,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+  profile = var.aws_profile
 }
 
 # ── Remote state bucket ──────────────────────────────────────────────────────
@@ -162,14 +163,31 @@ resource "aws_iam_role_policy" "ci" {
         Action = ["s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
         Resource = "*"
       },
-      # CloudFront — create invalidations
+      # CloudFront — manage distributions (Terraform) and create invalidations (CI deploy)
       {
         Sid    = "CloudFront"
         Effect = "Allow"
-        Action = ["cloudfront:CreateInvalidation"]
+        Action = [
+          "cloudfront:CreateDistribution",
+          "cloudfront:UpdateDistribution",
+          "cloudfront:DeleteDistribution",
+          "cloudfront:GetDistribution",
+          "cloudfront:GetDistributionConfig",
+          "cloudfront:ListDistributions",
+          "cloudfront:CreateOriginAccessControl",
+          "cloudfront:UpdateOriginAccessControl",
+          "cloudfront:DeleteOriginAccessControl",
+          "cloudfront:GetOriginAccessControl",
+          "cloudfront:GetOriginAccessControlConfig",
+          "cloudfront:ListOriginAccessControls",
+          "cloudfront:CreateInvalidation",
+          "cloudfront:TagResource",
+          "cloudfront:UntagResource",
+          "cloudfront:ListTagsForResource",
+        ]
         Resource = "*"
       },
-      # Terraform — read state
+      # Terraform — read/write state and acquire lock
       {
         Sid    = "TFState"
         Effect = "Allow"
@@ -179,12 +197,236 @@ resource "aws_iam_role_policy" "ci" {
           aws_dynamodb_table.tf_lock.arn,
         ]
       },
-      # SSM — read secrets at deploy time (for ECS task-def rendering)
+      # SSM — read secrets at deploy time (ECS task-def rendering)
       {
         Sid    = "SSMRead"
         Effect = "Allow"
         Action = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"]
         Resource = "arn:aws:ssm:*:*:parameter/taager/*"
+      },
+      # SSM — create and tag parameters (secrets module provisions them)
+      {
+        Sid    = "SSMWrite"
+        Effect = "Allow"
+        Action = [
+          "ssm:PutParameter",
+          "ssm:DeleteParameter",
+          "ssm:DescribeParameters",
+          "ssm:AddTagsToResource",
+          "ssm:ListTagsForResource",
+          "ssm:RemoveTagsFromResource",
+        ]
+        Resource = "arn:aws:ssm:*:*:parameter/taager/*"
+      },
+      # EC2 — describe operations for Terraform data sources (AMI, VPC, subnets, SGs)
+      {
+        Sid    = "EC2Read"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeImages",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSecurityGroupRules",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeInstances",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:DescribeTags",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeRouteTables",
+        ]
+        Resource = "*"
+      },
+      # EC2 — manage security groups and launch template for ECS instance
+      {
+        Sid    = "EC2Write"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateSecurityGroup",
+          "ec2:DeleteSecurityGroup",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:AuthorizeSecurityGroupEgress",
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:RevokeSecurityGroupEgress",
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:DeleteLaunchTemplateVersions",
+          "ec2:ModifyLaunchTemplate",
+          "ec2:RunInstances",
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
+        ]
+        Resource = "*"
+      },
+      # Auto Scaling — manage the single t3.micro ECS capacity ASG
+      {
+        Sid    = "AutoScaling"
+        Effect = "Allow"
+        Action = [
+          "autoscaling:CreateAutoScalingGroup",
+          "autoscaling:UpdateAutoScalingGroup",
+          "autoscaling:DeleteAutoScalingGroup",
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeScalingActivities",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:CreateOrUpdateTags",
+          "autoscaling:DeleteTags",
+          "autoscaling:DescribePolicies",
+          "autoscaling:PutScalingPolicy",
+          "autoscaling:DeletePolicy",
+          "autoscaling:DescribeLifecycleHooks",
+          "autoscaling:PutLifecycleHook",
+          "autoscaling:DeleteLifecycleHook",
+        ]
+        Resource = "*"
+      },
+      # ELB — Application Load Balancer, target groups, listeners
+      {
+        Sid    = "ELB"
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:CreateLoadBalancer",
+          "elasticloadbalancing:DeleteLoadBalancer",
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:ModifyLoadBalancerAttributes",
+          "elasticloadbalancing:SetSecurityGroups",
+          "elasticloadbalancing:SetSubnets",
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:DeleteTargetGroup",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetGroupAttributes",
+          "elasticloadbalancing:ModifyTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroupAttributes",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:DeleteListener",
+          "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags",
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:DescribeTargetHealth",
+        ]
+        Resource = "*"
+      },
+      # ECS infra — cluster and capacity provider lifecycle (supplements ECS deploy statement)
+      {
+        Sid    = "ECSInfra"
+        Effect = "Allow"
+        Action = [
+          "ecs:CreateCluster",
+          "ecs:DeleteCluster",
+          "ecs:DescribeClusters",
+          "ecs:UpdateCluster",
+          "ecs:PutClusterCapacityProviders",
+          "ecs:CreateCapacityProvider",
+          "ecs:DeleteCapacityProvider",
+          "ecs:DescribeCapacityProviders",
+          "ecs:UpdateCapacityProvider",
+          "ecs:TagResource",
+          "ecs:UntagResource",
+          "ecs:ListTagsForResource",
+        ]
+        Resource = "*"
+      },
+      # CloudWatch Logs — create and configure log groups for ECS task output
+      {
+        Sid    = "Logs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:DeleteLogGroup",
+          "logs:DescribeLogGroups",
+          "logs:PutRetentionPolicy",
+          "logs:ListTagsForResource",
+          "logs:ListTagsLogGroup",
+          "logs:TagResource",
+          "logs:UntagResource",
+          "logs:TagLogGroup",
+          "logs:UntagLogGroup",
+        ]
+        Resource = "*"
+      },
+      # IAM — create ECS instance role, task execution role, and instance profile
+      {
+        Sid    = "IAMTerraform"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:GetRole",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+          "iam:GetRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:CreateInstanceProfile",
+          "iam:DeleteInstanceProfile",
+          "iam:GetInstanceProfile",
+          "iam:AddRoleToInstanceProfile",
+          "iam:RemoveRoleFromInstanceProfile",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:ListInstanceProfilesForRole",
+        ]
+        Resource = "*"
+      },
+      # RDS — Postgres db.t3.micro instance and subnet group
+      {
+        Sid    = "RDS"
+        Effect = "Allow"
+        Action = [
+          "rds:CreateDBInstance",
+          "rds:DeleteDBInstance",
+          "rds:DescribeDBInstances",
+          "rds:ModifyDBInstance",
+          "rds:CreateDBSubnetGroup",
+          "rds:DeleteDBSubnetGroup",
+          "rds:DescribeDBSubnetGroups",
+          "rds:ModifyDBSubnetGroup",
+          "rds:AddTagsToResource",
+          "rds:RemoveTagsFromResource",
+          "rds:ListTagsForResource",
+          "rds:DescribeDBEngineVersions",
+        ]
+        Resource = "*"
+      },
+      # S3 — manage frontend buckets (create, versioning, public-access-block, bucket policy)
+      {
+        Sid    = "S3BucketManage"
+        Effect = "Allow"
+        Action = [
+          "s3:CreateBucket",
+          "s3:DeleteBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketVersioning",
+          "s3:PutBucketVersioning",
+          "s3:GetBucketPublicAccessBlock",
+          "s3:PutBucketPublicAccessBlock",
+          "s3:GetBucketPolicy",
+          "s3:PutBucketPolicy",
+          "s3:DeleteBucketPolicy",
+          "s3:GetEncryptionConfiguration",
+          "s3:PutEncryptionConfiguration",
+          "s3:GetBucketTagging",
+          "s3:PutBucketTagging",
+          "s3:GetBucketWebsite",
+          "s3:GetBucketRequestPayment",
+          "s3:GetBucketObjectLockConfiguration",
+          "s3:GetBucketCORS",
+          "s3:GetLifecycleConfiguration",
+          "s3:GetAccelerateConfiguration",
+          "s3:GetBucketLogging",
+          "s3:GetBucketAcl",
+          "s3:GetReplicationConfiguration",
+        ]
+        Resource = "*"
       },
     ]
   })
