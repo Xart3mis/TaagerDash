@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routers import auth, funnel, insights, users, targets
+from app.api.routers import auth, funnel, insights, users, targets, invites, teams
 
 app = FastAPI(
-    title="Ad Performance Dashboard",
-    description="Consolidated TikTok / Meta / Snapchat ad performance tracker",
+    title="TaagerDash",
+    description="Consolidated Advertising Campaign Performance Tracker",
     version="1.0.0",
 )
 
@@ -23,6 +23,8 @@ app.include_router(users.router, prefix="/api")
 app.include_router(targets.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(funnel.router, prefix="/api")
+app.include_router(invites.router, prefix="/api")
+app.include_router(teams.router, prefix="/api")
 
 
 @app.get("/health")
