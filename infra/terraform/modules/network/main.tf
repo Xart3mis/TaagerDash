@@ -10,6 +10,12 @@ data "aws_subnets" "default" {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
   }
+  # defaultForAz guarantees exactly one subnet per AZ, so the returned IDs are
+  # always spread across distinct AZs — required by ALB and RDS subnet groups.
+  filter {
+    name   = "defaultForAz"
+    values = ["true"]
+  }
 }
 
 # ── Security groups ───────────────────────────────────────────────────────────

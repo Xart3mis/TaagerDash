@@ -252,6 +252,7 @@ resource "aws_iam_role_policy" "ci" {
           "ec2:DescribeInternetGateways",
           "ec2:DescribeRouteTables",
           "ec2:DescribeVpcAttribute",
+          "ec2:DescribeAccountAttributes",
         ]
         Resource = "*"
       },
