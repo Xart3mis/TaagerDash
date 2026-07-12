@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api, TargetBase, TargetRead, UserRead } from '@/lib/api'
+import { CheckCircle } from 'lucide-react'
+
+const inputCls =
+  'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-colors'
 
 // ---------------------------------------------------------------------------
 // TargetForm — reused for both team defaults and personal overrides
@@ -25,9 +29,6 @@ function TargetForm({
     setForm(initial)
   }, [initial])
 
-  const inputCls =
-    'w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder-gray-300'
-
   /**
    * Renders a numeric target field.
    * pct=true: the server stores [0,1] but the UI shows percentages (multiply/divide by 100).
@@ -38,9 +39,9 @@ function TargetForm({
 
     return (
       <div key={key}>
-        <label className="block text-xs text-gray-600 mb-1">
+        <label className="block text-xs font-medium text-slate-600 mb-1.5">
           {label}
-          {pct && <span className="text-gray-400 ml-1">(%)</span>}
+          {pct && <span className="text-slate-400 ml-1 font-normal">(%)</span>}
         </label>
         <input
           type="number"
@@ -66,32 +67,41 @@ function TargetForm({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-1">{title}</h3>
-      {description && <p className="text-xs text-gray-400 mb-4">{description}</p>}
+    <div className="bg-white rounded-xl border border-slate-200">
+      <div className="px-5 py-4 border-b border-slate-100">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-[0.06em]">{title}</h2>
+        {description && <p className="text-xs text-slate-400 mt-1">{description}</p>}
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {field('cpa_cap', 'CPA Cap ($)')}
-          {field('target_roas', 'Target ROAS')}
-          {field('target_ctr', 'Target CTR', true)}
-          {field('target_confirmation', 'Confirmation Rate', true)}
-          {field('target_delivery', 'Delivery Rate', true)}
-          {field('target_fulfillment', 'Fulfillment Rate', true)}
-          {field('max_rto', 'Max RTO Rate', true)}
-        </div>
+      <div className="p-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {field('cpa_cap', 'CPA Cap ($)')}
+            {field('target_roas', 'Target ROAS')}
+            {field('target_ctr', 'Target CTR', true)}
+            {field('target_confirmation', 'Confirmation Rate', true)}
+            {field('target_delivery', 'Delivery Rate', true)}
+            {field('target_fulfillment', 'Fulfillment Rate', true)}
+            {field('max_rto', 'Max RTO Rate', true)}
+          </div>
 
-        <div className="flex items-center justify-end gap-4">
-          {saved && <span className="text-sm text-green-600">Saved!</span>}
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium text-sm px-6 py-2 rounded-lg transition-colors"
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-        </div>
-      </form>
+          <div className="flex items-center justify-end gap-3">
+            {saved && (
+              <span className="flex items-center gap-1.5 text-sm text-emerald-600">
+                <CheckCircle className="w-4 h-4" />
+                Saved
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
@@ -153,7 +163,10 @@ export default function TargetsPage() {
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow p-6 animate-pulse h-48" />
+          <div
+            key={i}
+            className="bg-white rounded-xl border border-slate-200 p-5 animate-pulse h-48"
+          />
         ))}
       </div>
     )
@@ -161,10 +174,10 @@ export default function TargetsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Targets</h2>
+      <h1 className="text-lg font-semibold text-slate-900">Targets</h1>
 
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+        <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
           {error}
         </div>
       )}

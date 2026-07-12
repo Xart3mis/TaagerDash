@@ -19,25 +19,29 @@ const PLATFORMS: { value: Platform | ''; label: string }[] = [
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-yellow-100 text-yellow-700'
+      ? 'bg-amber-50 text-amber-600 border border-amber-200'
       : rank === 2
-        ? 'bg-gray-100 text-gray-600'
+        ? 'bg-slate-100 text-slate-500 border border-slate-200'
         : rank === 3
-          ? 'bg-orange-100 text-orange-600'
-          : 'text-gray-400'
+          ? 'bg-orange-50 text-orange-600 border border-orange-100'
+          : 'text-slate-400'
   return (
-    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${cls}`}>
+    <span
+      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold tabular-nums ${cls}`}
+    >
       {rank}
     </span>
   )
 }
 
 function CapBadge({ status }: { status?: string | null }) {
-  if (!status) return <span className="text-gray-300 text-xs">—</span>
+  if (!status) return <span className="text-slate-300 text-xs">—</span>
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-        status === 'OK' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+        status === 'OK'
+          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+          : 'bg-red-50 text-red-600 border border-red-100'
       }`}
     >
       {status}
@@ -73,18 +77,19 @@ export default function LeaderboardPage() {
   }, [startDate, endDate, platform, sortBy])
 
   const inputCls =
-    'border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400'
-  const th = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide'
-  const td = 'px-4 py-3 text-sm text-gray-700'
+    'border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-colors'
+  const th =
+    'px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-[0.06em] whitespace-nowrap'
+  const td = 'px-4 py-3 text-sm text-slate-700 tabular-nums'
 
   return (
     <div className="space-y-6">
-      {/* Header + Filters */}
+      {/* ── Header + Filters ── */}
       <div className="flex flex-wrap items-end gap-4">
-        <h2 className="text-xl font-semibold text-gray-900 flex-1">Leaderboard</h2>
-        <div className="flex flex-wrap gap-3 items-end">
+        <h1 className="text-lg font-semibold text-slate-900 flex-1">Leaderboard</h1>
+        <div className="flex flex-wrap gap-2 items-end">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">From</label>
+            <label className="block text-xs text-slate-500 mb-1">From</label>
             <input
               type="date"
               value={startDate}
@@ -93,7 +98,7 @@ export default function LeaderboardPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">To</label>
+            <label className="block text-xs text-slate-500 mb-1">To</label>
             <input
               type="date"
               value={endDate}
@@ -102,7 +107,7 @@ export default function LeaderboardPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Platform</label>
+            <label className="block text-xs text-slate-500 mb-1">Platform</label>
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value as Platform | '')}
@@ -116,7 +121,7 @@ export default function LeaderboardPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Rank By</label>
+            <label className="block text-xs text-slate-500 mb-1">Rank By</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -133,17 +138,18 @@ export default function LeaderboardPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
           {error.toLowerCase().includes('admin')
             ? 'The leaderboard is visible to admins only.'
             : error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* ── Table ── */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 {[
                   '#',
@@ -164,14 +170,14 @@ export default function LeaderboardPage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <>
                   {Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 11 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 bg-slate-50 rounded animate-pulse" />
                         </td>
                       ))}
                     </tr>
@@ -179,17 +185,17 @@ export default function LeaderboardPage() {
                 </>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-10 text-center text-sm text-gray-400">
+                  <td colSpan={11} className="px-4 py-12 text-center text-sm text-slate-400">
                     No data for this period.
                   </td>
                 </tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={r.user_id} className="hover:bg-gray-50">
+                  <tr key={r.user_id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3">
                       <RankBadge rank={r.rank} />
                     </td>
-                    <td className={`${td} font-medium text-gray-800`}>{r.full_name}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800">{r.full_name}</td>
                     <td className={td}>{fmt.currency(r.spend)}</td>
                     <td className={td}>{fmt.num(r.impressions)}</td>
                     <td className={td}>{fmt.pct(r.ctr)}</td>
