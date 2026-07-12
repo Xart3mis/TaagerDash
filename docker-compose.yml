@@ -9,11 +9,29 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/adtracker
+    env_file:
+      - ./backend/.env
+    entrypoint: ["sh", "-c", "alembic upgrade head"]
+    restart: "no"
 
   backend:
     build: ./backend
     depends_on:
-      - db
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
     environment:
