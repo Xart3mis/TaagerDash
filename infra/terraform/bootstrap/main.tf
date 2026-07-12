@@ -367,6 +367,14 @@ resource "aws_iam_role_policy" "ci" {
         ]
         Resource = "*"
       },
+      # IAM — allow Terraform to create service-linked roles (ELB, RDS, ECS, ASG)
+      # SLRs are created automatically by AWS services the first time they are used.
+      {
+        Sid    = "ServiceLinkedRoles"
+        Effect = "Allow"
+        Action = ["iam:CreateServiceLinkedRole"]
+        Resource = "arn:aws:iam::*:role/aws-service-role/*"
+      },
       # IAM — create ECS instance role, task execution role, and instance profile
       {
         Sid    = "IAMTerraform"

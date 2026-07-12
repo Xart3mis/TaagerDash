@@ -24,7 +24,7 @@ resource "aws_db_instance" "main" {
 
   publicly_accessible     = false
   skip_final_snapshot     = true
-  backup_retention_period = 7
+  backup_retention_period = 0   # free-tier / unverified accounts cap this at 0
   deletion_protection     = true
 
   # Free-tier single-AZ — no Multi-AZ

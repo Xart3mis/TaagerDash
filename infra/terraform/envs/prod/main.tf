@@ -21,15 +21,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ── Import existing resources (created by previous partial applies) ───────────
-# Once imported, Terraform owns these resources and this block is a no-op on
-# subsequent runs (Terraform skips import when the resource is already in state).
-
-import {
-  to = module.compute.aws_iam_instance_profile.ec2_instance
-  id = "taagerdash-ecs-instance"
-}
-
 # ── Shared network (default VPC) ─────────────────────────────────────────────
 
 module "network" {
