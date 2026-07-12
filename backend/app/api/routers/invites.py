@@ -4,9 +4,9 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, status
 from sqlalchemy import select
 
-from app.api.deps import AdminUser, DB
+from app.api.deps import DB, AdminUser
 from app.models.invite_token import InviteToken
-from app.schemas.invite import InviteTokenRead, InviteTokenListRead
+from app.schemas.invite import InviteTokenListRead, InviteTokenRead
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 

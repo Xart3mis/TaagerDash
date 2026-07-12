@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Optional
+
 from pydantic import BaseModel
+
 from app.models.platform_connection import Platform
 
 

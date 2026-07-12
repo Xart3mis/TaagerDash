@@ -1,10 +1,17 @@
-from datetime import datetime
-from typing import Optional
-from sqlalchemy import DateTime, ForeignKey, String, Enum as SAEnum, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations
+
 import enum
+from datetime import datetime
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Platform(str, enum.Enum):
@@ -37,4 +44,4 @@ class PlatformConnection(Base):
 
     last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="connections")
+    user: Mapped[User] = relationship(back_populates="connections")

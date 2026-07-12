@@ -7,7 +7,7 @@ ever calls fetch_insights() — it never knows which platform it's talking to.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 

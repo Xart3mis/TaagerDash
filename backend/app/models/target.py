@@ -1,9 +1,16 @@
-from typing import Optional
-from sqlalchemy import Float, Integer, ForeignKey, Enum as SAEnum, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations
+
 import enum
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import Float, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class TargetScope(str, enum.Enum):
@@ -38,7 +45,7 @@ class Target(Base):
     target_fulfillment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)   # e.g. 0.65
     max_rto: Mapped[Optional[float]] = mapped_column(Float, nullable=True)              # e.g. 0.10
 
-    user: Mapped[Optional["User"]] = relationship(
+    user: Mapped[Optional[User]] = relationship(
         back_populates="targets",
         foreign_keys=[user_id],
     )

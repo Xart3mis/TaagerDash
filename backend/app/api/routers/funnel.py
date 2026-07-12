@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import and_, select
 
-from app.api.deps import CurrentUser, DB
+from app.api.deps import DB, CurrentUser
 from app.models.order_funnel import OrderFunnelEntry
 from app.models.target import Target, TargetScope
 from app.schemas.funnel import FunnelDerivedMetrics, FunnelEntryWithMetrics, OrderFunnelCreate

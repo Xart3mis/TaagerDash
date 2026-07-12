@@ -29,7 +29,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies (with dev extras)
-        run: uv sync --frozen
+        run: uv sync --frozen --extra dev
 
       - name: Lint (ruff)
         run: uv run ruff check .

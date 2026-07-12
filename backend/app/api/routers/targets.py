@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser, AdminUser, DB
+from app.api.deps import DB, AdminUser, CurrentUser
 from app.models.target import Target, TargetScope
-from app.schemas.target import TargetCreate, TargetRead, EffectiveTargets
+from app.schemas.target import EffectiveTargets, TargetCreate, TargetRead
 
 router = APIRouter(prefix="/targets", tags=["targets"])
 

@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
 from cryptography.fernet import Fernet
 from jose import JWTError, jwt
-import bcrypt
 
 from app.core.config import settings
 

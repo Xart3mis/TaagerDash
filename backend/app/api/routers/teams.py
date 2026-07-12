@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import AdminUser, CurrentUser, DB
+from app.api.deps import DB, AdminUser, CurrentUser
 from app.models.team import Team
 from app.models.user import User
 from app.schemas.team import TeamCreate, TeamMemberAdd, TeamRead
