@@ -11,7 +11,7 @@ from app.models.platform_connection import Platform
 from app.models.target import Target, TargetScope
 from app.models.user import User
 from app.schemas.ad_insight import AdInsightCreate, AdInsightRead
-from app.schemas.insights import BuyerSummary, CampaignSummary, MetricsSummary, PlatformSummary
+from app.schemas.insights import BuyerSummary, CampaignSummary, DailyMetrics, MetricsSummary, PlatformSummary
 from app.services.metrics import derive_all
 
 router = APIRouter(prefix="/insights", tags=["insights"])
@@ -186,6 +186,31 @@ async def get_by_campaign(
     return [
         CampaignSummary(campaign=r["campaign"], platform=r["platform"], **_to_derived(r))
         for r in rows
+    ]
+
+
+@router.get("/by-day", response_model=list[DailyMetrics])
+async def get_by_day(
+    current_user: CurrentUser,
+    db: DB,
+    start_date: date = Query(...),
+    end_date: date = Query(...),
+    platform: Optional[Platform] = Query(None),
+):
+    """Daily spend/revenue/purchases for the current buyer — powers trend charts."""
+    where = [AdInsight.user_id == current_user.id] + _date_where(start_date, end_date, platform)
+    rows = await _agg(db, where, group_cols=[AdInsight.date])
+    sorted_rows = sorted(rows, key=lambda x: x["date"])
+    return [
+        DailyMetrics(
+            date=str(r["date"]),
+            spend=r["spend"] or 0,
+            revenue=r["revenue"],
+            purchases=r["purchases"],
+            impressions=r["impressions"] or 0,
+            link_clicks=r["link_clicks"] or 0,
+        )
+        for r in sorted_rows
     ]
 
 

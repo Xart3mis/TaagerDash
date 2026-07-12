@@ -48,3 +48,12 @@ class BuyerSummary(MetricsSummary):
     user_id: int
     full_name: str
     rank: int = 0
+
+
+class DailyMetrics(BaseModel):
+    date: str
+    spend: float = 0
+    revenue: Optional[float] = None
+    purchases: Optional[int] = None
+    impressions: int = 0
+    link_clicks: int = 0
