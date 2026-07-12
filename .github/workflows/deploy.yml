@@ -101,17 +101,7 @@ jobs:
             --query 'taskDefinition' \
             --output json)
 
-          NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c '
-import json, sys
-td = json.load(sys.stdin)
-new_image = sys.argv[1]
-for c in td["containerDefinitions"]:
-    c["image"] = new_image
-for key in ["taskDefinitionArn","revision","status","requiresAttributes",
-            "compatibilities","registeredAt","registeredBy"]:
-    td.pop(key, None)
-print(json.dumps(td))
-' "${NEW_IMAGE}")
+          NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "import json,sys; td=json.load(sys.stdin); ni=sys.argv[1]; [c.update({'image':ni}) for c in td['containerDefinitions']]; [td.pop(k,None) for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']]; print(json.dumps(td))" "${NEW_IMAGE}")
 
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json "${NEW_TASK_DEF}" \
@@ -156,17 +146,7 @@ print(json.dumps(td))
             --query 'taskDefinition' \
             --output json)
 
-          NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c '
-import json, sys
-td = json.load(sys.stdin)
-new_image = sys.argv[1]
-for c in td["containerDefinitions"]:
-    c["image"] = new_image
-for key in ["taskDefinitionArn","revision","status","requiresAttributes",
-            "compatibilities","registeredAt","registeredBy"]:
-    td.pop(key, None)
-print(json.dumps(td))
-' "${NEW_IMAGE}")
+          NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "import json,sys; td=json.load(sys.stdin); ni=sys.argv[1]; [c.update({'image':ni}) for c in td['containerDefinitions']]; [td.pop(k,None) for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']]; print(json.dumps(td))" "${NEW_IMAGE}")
 
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json "${NEW_TASK_DEF}" \
