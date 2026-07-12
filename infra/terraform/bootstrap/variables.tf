@@ -4,6 +4,10 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "aws_profile" {
+  type    = string
+}
+
 variable "state_bucket_name" {
   description = "S3 bucket for Terraform remote state (must be globally unique)"
   type        = string
