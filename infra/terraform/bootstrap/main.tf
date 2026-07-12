@@ -148,13 +148,21 @@ resource "aws_iam_role_policy" "ci" {
         ]
         Resource = "*"
       },
-      # Pass role to ECS tasks
+      # Pass role to ECS tasks (used by ecs:RunTask, ecs:RegisterTaskDefinition)
       {
-        Sid    = "PassRole"
+        Sid    = "PassRoleECS"
         Effect = "Allow"
         Action = "iam:PassRole"
         Resource = "*"
         Condition = { StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" } }
+      },
+      # Pass role to EC2 (used by iam:AddRoleToInstanceProfile when creating ECS instance profile)
+      {
+        Sid    = "PassRoleEC2"
+        Effect = "Allow"
+        Action = "iam:PassRole"
+        Resource = "*"
+        Condition = { StringEquals = { "iam:PassedToService" = "ec2.amazonaws.com" } }
       },
       # S3 — sync frontend assets
       {
@@ -211,12 +219,18 @@ resource "aws_iam_role_policy" "ci" {
         Action = [
           "ssm:PutParameter",
           "ssm:DeleteParameter",
-          "ssm:DescribeParameters",
           "ssm:AddTagsToResource",
           "ssm:ListTagsForResource",
           "ssm:RemoveTagsFromResource",
         ]
         Resource = "arn:aws:ssm:*:*:parameter/taager/*"
+      },
+      # SSM — DescribeParameters is a list operation; does not support resource-level permissions
+      {
+        Sid      = "SSMDescribe"
+        Effect   = "Allow"
+        Action   = ["ssm:DescribeParameters"]
+        Resource = "*"
       },
       # EC2 — describe operations for Terraform data sources (AMI, VPC, subnets, SGs)
       {
