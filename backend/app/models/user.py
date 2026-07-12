@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sqlalchemy import Boolean, String, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
@@ -28,4 +30,9 @@ class User(Base):
         primaryjoin="and_(Target.user_id == User.id, Target.scope == 'user')",
         cascade="all, delete-orphan",
         foreign_keys="Target.user_id",
+    )
+    teams: Mapped[list["Team"]] = relationship(
+        "Team",
+        secondary="user_teams",
+        back_populates="members",
     )
