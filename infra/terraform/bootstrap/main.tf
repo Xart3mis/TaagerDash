@@ -253,6 +253,7 @@ resource "aws_iam_role_policy" "ci" {
           "ec2:DescribeRouteTables",
           "ec2:DescribeVpcAttribute",
           "ec2:DescribeAccountAttributes",
+          "ec2:GetSecurityGroupsForVpc",
         ]
         Resource = "*"
       },
