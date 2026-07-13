@@ -108,6 +108,27 @@ jobs:
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
 
+          # Wait for the EC2 container instance to register with the cluster.
+          # deploy.yml and terraform.yml both trigger on main; the EC2 instance
+          # can take ~2-3 min to boot and register after a fresh Terraform apply.
+          echo "Waiting for ECS container instances to register..."
+          for i in $(seq 1 36); do
+            INSTANCE_COUNT=$(aws ecs list-container-instances \
+              --cluster "${ECS_CLUSTER}" \
+              --query 'length(containerInstanceArns)' \
+              --output text)
+            if [ "${INSTANCE_COUNT}" -gt "0" ]; then
+              echo "Found ${INSTANCE_COUNT} container instance(s), proceeding."
+              break
+            fi
+            if [ "${i}" -eq "36" ]; then
+              echo "No container instances registered after 6 minutes — aborting."
+              exit 1
+            fi
+            echo "No instances yet (attempt ${i}/36), retrying in 10s..."
+            sleep 10
+          done
+
           TASK_ARN=$(aws ecs run-task \
             --cluster "${ECS_CLUSTER}" \
             --task-definition "${NEW_TASK_DEF_ARN}" \
