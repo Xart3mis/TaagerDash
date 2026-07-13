@@ -144,6 +144,7 @@ resource "aws_iam_role_policy" "ci" {
           "ecs:RunTask",
           "ecs:DescribeTasks",
           "ecs:ListTasks",
+          "ecs:ListContainerInstances",
           "ecs:StopTask",
         ]
         Resource = "*"
