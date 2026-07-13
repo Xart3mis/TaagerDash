@@ -348,6 +348,9 @@ resource "aws_iam_role_policy" "ci" {
           "ecs:DeleteCapacityProvider",
           "ecs:DescribeCapacityProviders",
           "ecs:UpdateCapacityProvider",
+          "ecs:CreateService",
+          "ecs:DeleteService",
+          "ecs:DeregisterTaskDefinition",
           "ecs:TagResource",
           "ecs:UntagResource",
           "ecs:ListTagsForResource",
@@ -454,6 +457,8 @@ resource "aws_iam_role_policy" "ci" {
           "s3:GetBucketLogging",
           "s3:GetBucketAcl",
           "s3:GetReplicationConfiguration",
+          "s3:GetBucketNotification",
+          "s3:GetBucketPolicyStatus",
         ]
         Resource = "*"
       },
