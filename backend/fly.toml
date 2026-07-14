@@ -1,0 +1,53 @@
+# fly.toml — TaagerDash backend (Fly.io)
+#
+# One config file, two apps: taagerdash-staging and taagerdash-prod.
+# CI always passes --app to override the default below.
+#
+# First-time setup (run once per app):
+#   fly apps create taagerdash-staging
+#   fly apps create taagerdash-prod
+#   fly secrets set --app taagerdash-staging \
+#       DATABASE_URL="postgresql+asyncpg://user:pass@host/db?ssl=require" \
+#       SECRET_KEY="..." \
+#       TOKEN_ENCRYPTION_KEY="..." \
+#       ALGORITHM="HS256" \
+#       ACCESS_TOKEN_EXPIRE_MINUTES="60" \
+#       REFRESH_TOKEN_EXPIRE_DAYS="30" \
+#       FRONTEND_ORIGIN="https://taagerdash-staging.pages.dev"
+#   # Repeat with --app taagerdash-prod and prod values
+#
+# To keep prod always-on (no cold starts), run once:
+#   fly scale count 1 --app taagerdash-prod
+
+app            = "taagerdash-prod"   # overridden by --app flag in CI
+primary_region = "iad"               # us-east-1 equivalent — closest to Neon us-east-2
+
+[build]
+  dockerfile = "Dockerfile"   # relative to backend/ (fly.toml's directory)
+
+[deploy]
+  release_command = "/bin/sh -c 'alembic upgrade head'"
+  strategy        = "rolling"
+
+[http_service]
+  internal_port       = 8000
+  force_https         = true
+  auto_stop_machines  = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[http_service.checks]]
+  interval     = "30s"
+  timeout      = "5s"
+  grace_period = "30s"
+  method       = "GET"
+  path         = "/health"
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"
