@@ -1,56 +1,20 @@
 name: Deploy
 
-# Push to main        → staging automatically
-# workflow_dispatch   → whichever environment the caller chose
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Target environment"
-        required: true
-        type: choice
-        options: [staging, prod]
-        default: staging
 
 concurrency:
-  group: deploy-${{ github.ref }}-${{ github.event.inputs.environment || 'staging' }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  # ── Resolve environment and Fly.io app name ──────────────────────────────────
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.env.outputs.environment }}
-      fly_app:     ${{ steps.env.outputs.fly_app }}
-    steps:
-      - id: env
-        env:
-          DISPATCH_ENV: ${{ github.event.inputs.environment }}
-          EVENT_NAME:   ${{ github.event_name }}
-        run: |
-          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
-            ENV="${DISPATCH_ENV}"
-          else
-            ENV="staging"
-          fi
-          echo "environment=${ENV}"         >> "$GITHUB_OUTPUT"
-          echo "fly_app=taagerdash-${ENV}"  >> "$GITHUB_OUTPUT"
-
-  # ── Deploy backend to Fly.io ─────────────────────────────────────────────────
-  # Fly.io builds the Docker image on their remote builders (no Docker daemon
-  # needed on the runner), executes `alembic upgrade head` as a release command
-  # before shifting traffic, then performs a rolling swap to the new machine.
   deploy-backend:
-    needs: setup
     runs-on: ubuntu-latest
-    environment: ${{ needs.setup.outputs.environment }}
 
     steps:
       - uses: actions/checkout@v4
@@ -58,30 +22,21 @@ jobs:
       - name: Install flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Deploy to Fly.io (${{ needs.setup.outputs.fly_app }})
+      - name: Deploy to Fly.io (taagerdash)
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          FLY_APP:       ${{ needs.setup.outputs.fly_app }}
         run: |
           flyctl deploy \
             --config backend/fly.toml \
-            --app "${FLY_APP}" \
+            --app taagerdash \
             --remote-only \
             --wait-timeout 180
 
   # ── Frontend ──────────────────────────────────────────────────────────────────
-  # Cloudflare Pages auto-deploys on every push to main — no step required here.
+  # Cloudflare Pages auto-deploys on push to main — no step required here.
   #
-  # One-time setup in the CF Pages dashboard (or via Wrangler):
-  #   Framework preset : None (Vite)
+  # One-time dashboard setup:
   #   Build command    : npm run build
   #   Build output dir : dist
   #   Root directory   : frontend
-  #
-  # Environment variables (set per CF Pages environment):
-  #   staging : VITE_API_URL = https://taagerdash-staging.fly.dev/api
-  #   prod    : VITE_API_URL = https://taagerdash-prod.fly.dev/api
-  #
-  # CF Pages treats `main` as the production branch by default.
-  # Create a `staging` branch and point CF Pages preview deployments
-  # at it to get a separate staging frontend URL.
+  #   Env var          : VITE_API_URL = https://taagerdash.fly.dev/api

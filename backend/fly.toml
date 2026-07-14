@@ -1,26 +1,21 @@
 # fly.toml — TaagerDash backend (Fly.io)
 #
-# One config file, two apps: taagerdash-staging and taagerdash-prod.
-# CI always passes --app to override the default below.
-#
-# First-time setup (run once per app):
-#   fly apps create taagerdash-staging
-#   fly apps create taagerdash-prod
-#   fly secrets set --app taagerdash-staging \
+# First-time setup:
+#   fly apps create taagerdash
+#   fly secrets set --app taagerdash \
 #       DATABASE_URL="postgresql+asyncpg://user:pass@host/db?ssl=require" \
-#       SECRET_KEY="..." \
+#       SECRET_KEY="$(openssl rand -hex 32)" \
 #       TOKEN_ENCRYPTION_KEY="..." \
 #       ALGORITHM="HS256" \
 #       ACCESS_TOKEN_EXPIRE_MINUTES="60" \
 #       REFRESH_TOKEN_EXPIRE_DAYS="30" \
-#       FRONTEND_ORIGIN="https://taagerdash-staging.pages.dev"
-#   # Repeat with --app taagerdash-prod and prod values
+#       FRONTEND_ORIGIN="https://taagerdash.pages.dev"
 #
-# To keep prod always-on (no cold starts), run once:
-#   fly scale count 1 --app taagerdash-prod
+# To keep always-on (no cold starts):
+#   fly scale count 1 --app taagerdash
 
-app            = "taagerdash-prod"   # overridden by --app flag in CI
-primary_region = "iad"               # us-east-1 equivalent — closest to Neon us-east-2
+app            = "taagerdash"
+primary_region = "iad"    # us-east-1 equivalent — closest to Neon us-east-2
 
 [build]
   dockerfile = "Dockerfile"   # relative to backend/ (fly.toml's directory)
